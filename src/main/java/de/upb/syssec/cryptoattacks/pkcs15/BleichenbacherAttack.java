@@ -5,6 +5,7 @@ import de.upb.syssec.cryptoattacks.pkcs15.oracles.AOracle;
 import java.math.BigInteger;
 import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
@@ -30,7 +31,7 @@ public class BleichenbacherAttack {
     protected final BigInteger bigB;
     protected final boolean msgIsPKCS;
     boolean interruptAfterRound = true;
-    boolean interrupted = true;
+    AtomicBoolean interrupted;
     BigInteger solution = null;
     private int validOracleResponses;
     /**
@@ -67,6 +68,8 @@ public class BleichenbacherAttack {
             (BigInteger.valueOf(3).multiply(bigB)).subtract(BigInteger.ONE))};
         // we assume that we start with a PKCS1 compliant message
         validOracleResponses = 1;
+        
+        interrupted = new AtomicBoolean(true);
     }
 
     public void attack() {
@@ -85,7 +88,7 @@ public class BleichenbacherAttack {
             logger.info("// Total # of queries so far: " + oracle.getNumberOfQueries());
 
             if (interruptAfterRound) {
-                interrupted = true;
+                interrupted.set(true);
                 return;
             } else {
                 try {
@@ -383,4 +386,6 @@ public class BleichenbacherAttack {
     public BigInteger getSolution() {
         return solution;
     }
+    
+    
 }

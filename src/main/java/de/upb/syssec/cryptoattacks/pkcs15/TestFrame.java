@@ -216,7 +216,6 @@ public class TestFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_startButtonActionPerformed
 
     private void startAttackThread() {
-        attacker.interrupted = false;
         Thread t = new Thread() {
             @Override
             public void run() {
@@ -236,19 +235,22 @@ public class TestFrame extends javax.swing.JFrame {
         Thread t = new Thread() {
             @Override
             public void run() {
+                attacker.interrupted.set(false);
                 nextRoundButton.setEnabled(false);
                 logger.debug("started text field updater");
-                while (attacker.solution == null && !attacker.interrupted) {
-                    jTextArea1.setText(Utility.bytesToHex(attacker.si.toByteArray()));
+                boolean madeAtLeastOneRound = false;
+                while ((attacker.solution == null && !attacker.interrupted.get()) || !madeAtLeastOneRound) {
+                    try {
+                        Thread.sleep(10);
+                    } catch (InterruptedException ie) {
+                    }
+                    jTextArea1.setText(attacker.si.toString());
                     if (attacker.m != null && attacker.m[0] != null) {
                         jTextArea2.setText("00 " + Utility.bytesToHex(attacker.m[0].lower.toByteArray()));
                         jTextArea3.setText("00 " + Utility.bytesToHex(attacker.m[0].upper.toByteArray()));
                     }
                     jTextField1.setText(Long.toString(attacker.oracle.getNumberOfQueries()));
-                    try {
-                        Thread.sleep(10);
-                    } catch (InterruptedException ie) {
-                    }
+                    madeAtLeastOneRound = true;
                 }
                 nextRoundButton.setEnabled(true);
                 logger.debug("stopped text field updater");
@@ -258,9 +260,9 @@ public class TestFrame extends javax.swing.JFrame {
     }
 
     private void nextRoundButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nextRoundButtonActionPerformed
-        attacker.interrupted = false;
-        startAttackThread();
+        attacker.interrupted.set(false);
         startTextFieldUpdaterThread();
+        startAttackThread();
     }//GEN-LAST:event_nextRoundButtonActionPerformed
 
     private void jCheckBox1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox1ActionPerformed
